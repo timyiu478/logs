@@ -19,20 +19,50 @@ document.addEventListener("DOMContentLoaded", () => {
 
     class Orb {
         constructor() {
-            this.radius = Math.random() * 200 + 150;
+            // Original size parameters[cite: 1]
+            this.baseRadius = Math.random() * 200 + 150; 
+            this.radius = this.baseRadius;
             this.x = Math.random() * width;
             this.y = Math.random() * height;
-            this.dx = (Math.random() - 0.5) * 1.2;
-            this.dy = (Math.random() - 0.5) * 1.2;
+            
+            // Vector movement instead of rigid dx/dy
+            this.angle = Math.random() * Math.PI * 2;
+            this.baseSpeed = Math.random() * 0.5 + 0.2;
+            this.speed = this.baseSpeed;
+            
             this.color = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Jellyfish biolocomotion (Pulse timing)
+            this.pulseCycle = Math.random() * Math.PI * 2;
+            this.pulseRate = Math.random() * 0.02 + 0.01;
         }
 
         update() {
-            if (this.x - this.radius < -100 || this.x + this.radius > width + 100) this.dx *= -1;
-            if (this.y - this.radius < -100 || this.y + this.radius > height + 100) this.dy *= -1;
+            // 1. Advance the breathing cycle
+            this.pulseCycle += this.pulseRate;
+            
+            // Sine wave normalized to 0-1 for rhythmic breathing
+            const pulse = (Math.sin(this.pulseCycle) + 1) / 2;
+            
+            // 2. Pulse and Glide: Burst of speed during the "contraction" phase
+            this.speed = this.baseSpeed + (Math.pow(pulse, 4) * 2.5);
+            
+            // 3. Flex the radius slightly to visualize the propulsion
+            this.radius = this.baseRadius * (1 - pulse * 0.12);
 
-            this.x += this.dx;
-            this.y += this.dy;
+            // 4. Add a slight organic wobble to the steering
+            this.angle += (Math.random() - 0.5) * 0.04;
+
+            // Apply movement
+            this.x += Math.cos(this.angle) * this.speed;
+            this.y += Math.sin(this.angle) * this.speed;
+
+            // 5. Soft boundary reflection (steering away from edges instead of hard bounces)
+            const margin = 150;
+            if (this.x < -margin) this.angle = Math.PI - this.angle; 
+            if (this.x > width + margin) this.angle = Math.PI - this.angle; 
+            if (this.y < -margin) this.angle = -this.angle; 
+            if (this.y > height + margin) this.angle = -this.angle; 
         }
 
         draw() {
@@ -61,7 +91,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function animate() {
-        ctx.clearRect(0, 0, width, height);
+        // This creates the jellyfish "motion trail" without drawing extra shapes.
+        ctx.fillStyle = "rgba(248, 250, 252, 0.4)";
+        ctx.fillRect(0, 0, width, height);
         
         orbs.forEach(orb => {
             orb.update();
