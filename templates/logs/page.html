@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<article class="log-card" id="log-{{ page.date }}">
+    <div class="log-meta">
+        <span class="badge-date">{{ page.date }}</span>
+        {% if page.title and page.title != page.date %}
+            <a href="{{ page.permalink }}" class="log-subtitle">{{ page.title }}</a>
+        {% endif %}
+    </div>
+    <div class="log-body">
+        {{ page.content | safe }}
+    </div>
+</article>
+{% endblock %}

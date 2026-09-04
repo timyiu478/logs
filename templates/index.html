@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="log-stream" id="log-stream">
+    {% set logs = get_section(path="logs/_index.md") %}
+    {% set current_year_month = now() | date(format="%Y-%m") %}
+
+    {% set_global count = 0 %}
+    {% for page in logs.pages %}
+        {% set page_year_month = page.date | date(format="%Y-%m") %}
+        
+        {% if page_year_month == current_year_month %}
+            {% set_global count = count + 1 %}
+            <article class="log-card" id="log-{{ page.date }}">
+                <div class="log-meta">
+                    <span class="badge-date">{{ page.date }}</span>
+                    {% if page.title and page.title != page.date %}
+                        <a href="{{ page.permalink }}" class="log-subtitle">{{ page.title }}</a>
+                    {% endif %}
+                </div>
+                <div class="log-body">
+                    {{ page.content | safe }}
+                </div>
+            </article>
+        {% endif %}
+    {% endfor %}
+
+    {% if count == 0 %}
+        <div class="log-card" id="no-logs-msg">
+            <p>No logs found for this month. Click a date on the calendar to view past archives.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

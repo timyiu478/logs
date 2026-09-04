@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Succinct Logs{% endblock %}</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <canvas id="dynamic-art-bg"></canvas>
+
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-sticky">
+                <a href="/" class="brand-title">TY Succinct Logs</a>
+                <p class="brand-desc">Bite-sized daily updates & quick notes.</p>
+                <div id="calendar-container"></div>
+            </div>
+        </aside>
+
+        <main class="content-area">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        const logMap = {
+            {% set logs = get_section(path="logs/_index.md", catch=true) %}
+            {% if logs %}
+                {% for page in logs.pages %}
+                    "{{ page.date }}": "{{ page.permalink | safe }}",
+                {% endfor %}
+            {% endif %}
+        };
+    </script>
+    <script src="/js/calendar.js"></script>
+    <script src="/js/art.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ section.title }}</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1><a href="/">← Home / Calendar</a></h1>
+            <h2>{{ section.title }} Archive</h2>
+        </header>
+
+        <section class="log-stream">
+            {% for page in section.pages %}
+                <article class="daily-log-entry" id="log-{{ page.date }}">
+                    <div class="log-meta">
+                        <span class="log-date">{{ page.date }}</span>
+                    </div>
+                    <h3><a href="{{ page.permalink }}">{{ page.title }}</a></h3>
+                    <div class="log-body">
+                        {{ page.content | safe }}
+                    </div>
+                    <hr>
+                </article>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>
