@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("dynamic-art-bg");
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
 
     let width, height;
@@ -19,50 +20,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
     class Orb {
         constructor() {
-            // Original size parameters[cite: 1]
             this.baseRadius = Math.random() * 200 + 150; 
             this.radius = this.baseRadius;
             this.x = Math.random() * width;
             this.y = Math.random() * height;
             
-            // Vector movement instead of rigid dx/dy
             this.angle = Math.random() * Math.PI * 2;
             this.baseSpeed = Math.random() * 0.5 + 0.2;
             this.speed = this.baseSpeed;
             
+            // External force vectors applied on click
+            this.vx = 0;
+            this.vy = 0;
+            this.friction = 0.95; // Smooth deceleration after impact
+            
             this.color = colors[Math.floor(Math.random() * colors.length)];
             
-            // Jellyfish biolocomotion (Pulse timing)
             this.pulseCycle = Math.random() * Math.PI * 2;
             this.pulseRate = Math.random() * 0.02 + 0.01;
         }
 
+        applyForce(fx, fy) {
+            this.vx += fx;
+            this.vy += fy;
+        }
+
         update() {
-            // 1. Advance the breathing cycle
+            // 1. Natural pulse & glide mechanics
             this.pulseCycle += this.pulseRate;
-            
-            // Sine wave normalized to 0-1 for rhythmic breathing
             const pulse = (Math.sin(this.pulseCycle) + 1) / 2;
             
-            // 2. Pulse and Glide: Burst of speed during the "contraction" phase
             this.speed = this.baseSpeed + (Math.pow(pulse, 4) * 2.5);
-            
-            // 3. Flex the radius slightly to visualize the propulsion
             this.radius = this.baseRadius * (1 - pulse * 0.12);
 
-            // 4. Add a slight organic wobble to the steering
             this.angle += (Math.random() - 0.5) * 0.04;
 
-            // Apply movement
-            this.x += Math.cos(this.angle) * this.speed;
-            this.y += Math.sin(this.angle) * this.speed;
+            // 2. Combine ambient swimming velocity with external force
+            const ambientX = Math.cos(this.angle) * this.speed;
+            const ambientY = Math.sin(this.angle) * this.speed;
 
-            // 5. Soft boundary reflection (steering away from edges instead of hard bounces)
+            this.x += ambientX + this.vx;
+            this.y += ambientY + this.vy;
+
+            // 3. Apply friction to gradually decay the hit force
+            this.vx *= this.friction;
+            this.vy *= this.friction;
+
+            // 4. Soft boundary reflection
             const margin = 150;
-            if (this.x < -margin) this.angle = Math.PI - this.angle; 
-            if (this.x > width + margin) this.angle = Math.PI - this.angle; 
-            if (this.y < -margin) this.angle = -this.angle; 
-            if (this.y > height + margin) this.angle = -this.angle; 
+            if (this.x < -margin) { this.angle = Math.PI - this.angle; this.vx *= -1; }
+            if (this.x > width + margin) { this.angle = Math.PI - this.angle; this.vx *= -1; }
+            if (this.y < -margin) { this.angle = -this.angle; this.vy *= -1; }
+            if (this.y > height + margin) { this.angle = -this.angle; this.vy *= -1; }
         }
 
         draw() {
@@ -79,11 +88,43 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Interactive Force Trigger on Click / Touch
+    function handlePointerHit(clientX, clientY) {
+        orbs.forEach(orb => {
+            const dx = orb.x - clientX;
+            const dy = orb.y - clientY;
+            const distance = Math.hypot(dx, dy);
+
+            // Effective hit range expands slightly beyond the visual radius
+            const hitRange = orb.radius * 1.5;
+
+            if (distance < hitRange) {
+                // Calculate force intensity proportional to closeness
+                const forceStrength = (1 - distance / hitRange) * 28;
+                const angle = Math.atan2(dy, dx);
+
+                const fx = Math.cos(angle) * forceStrength;
+                const fy = Math.sin(angle) * forceStrength;
+
+                orb.applyForce(fx, fy);
+                
+                // Briefly contract the orb radius to visually indicate impact
+                orb.radius *= 0.85;
+            }
+        });
+    }
+
     function init() {
         resize();
         window.addEventListener("resize", resize);
+
+        // Pointer event listener works for both mouse clicks and mobile touches
+        window.addEventListener("pointerdown", (e) => {
+            handlePointerHit(e.clientX, e.clientY);
+        });
         
         const numOrbs = window.innerWidth > 768 ? 10 : 5;
+        orbs = [];
         for (let i = 0; i < numOrbs; i++) {
             orbs.push(new Orb());
         }
@@ -91,7 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function animate() {
-        // This creates the jellyfish "motion trail" without drawing extra shapes.
         ctx.fillStyle = "rgba(248, 250, 252, 0.4)";
         ctx.fillRect(0, 0, width, height);
         
