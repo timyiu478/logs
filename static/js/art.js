@@ -7,10 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let orbs = [];
 
     const colors = [
-        "rgba(25, 110, 160, 0.5)",  // Icy Blue
-        "rgba(15, 20, 30, 0.6)",    // Deep Charcoal/Black
-        "rgba(90, 0, 220, 0.4)",    // Vivid Purple
-        "rgba(138, 43, 226, 0.3)"   // Lighter Violet
+        "rgba(25, 110, 160, 0.5)",  
+        "rgba(15, 20, 30, 0.6)",    
+        "rgba(90, 0, 220, 0.4)",    
+        "rgba(138, 43, 226, 0.3)"   
     ];
 
     function resize() {
@@ -29,10 +29,9 @@ document.addEventListener("DOMContentLoaded", () => {
             this.baseSpeed = Math.random() * 0.5 + 0.2;
             this.speed = this.baseSpeed;
             
-            // External force vectors applied on click
             this.vx = 0;
             this.vy = 0;
-            this.friction = 0.95; // Smooth deceleration after impact
+            this.friction = 0.95; 
             
             this.color = colors[Math.floor(Math.random() * colors.length)];
             
@@ -46,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         update() {
-            // 1. Natural pulse & glide mechanics
             this.pulseCycle += this.pulseRate;
             const pulse = (Math.sin(this.pulseCycle) + 1) / 2;
             
@@ -55,18 +53,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             this.angle += (Math.random() - 0.5) * 0.04;
 
-            // 2. Combine ambient swimming velocity with external force
             const ambientX = Math.cos(this.angle) * this.speed;
             const ambientY = Math.sin(this.angle) * this.speed;
 
             this.x += ambientX + this.vx;
             this.y += ambientY + this.vy;
 
-            // 3. Apply friction to gradually decay the hit force
             this.vx *= this.friction;
             this.vy *= this.friction;
 
-            // 4. Soft boundary reflection
             const margin = 150;
             if (this.x < -margin) { this.angle = Math.PI - this.angle; this.vx *= -1; }
             if (this.x > width + margin) { this.angle = Math.PI - this.angle; this.vx *= -1; }
@@ -88,18 +83,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Interactive Force Trigger on Click / Touch
     function handlePointerHit(clientX, clientY) {
         orbs.forEach(orb => {
             const dx = orb.x - clientX;
             const dy = orb.y - clientY;
             const distance = Math.hypot(dx, dy);
 
-            // Effective hit range expands slightly beyond the visual radius
             const hitRange = orb.radius * 1.5;
 
             if (distance < hitRange) {
-                // Calculate force intensity proportional to closeness
                 const forceStrength = (1 - distance / hitRange) * 28;
                 const angle = Math.atan2(dy, dx);
 
@@ -107,8 +99,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const fy = Math.sin(angle) * forceStrength;
 
                 orb.applyForce(fx, fy);
-                
-                // Briefly contract the orb radius to visually indicate impact
                 orb.radius *= 0.85;
             }
         });
@@ -118,7 +108,6 @@ document.addEventListener("DOMContentLoaded", () => {
         resize();
         window.addEventListener("resize", resize);
 
-        // Pointer event listener works for both mouse clicks and mobile touches
         window.addEventListener("pointerdown", (e) => {
             handlePointerHit(e.clientX, e.clientY);
         });

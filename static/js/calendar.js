@@ -4,16 +4,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!container || !streamContainer) return;
 
     let currentDate = new Date();
-    const cardCache = new Map(); // In-memory cache: "YYYY-MM-DD" -> HTML string of <article>
+    const cardCache = new Map(); 
     let activeMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
 
-    // 1. Cache initial SSR-rendered cards from DOM on page load
     document.querySelectorAll(".log-card[id^='log-']").forEach(card => {
         const dateKey = card.id.replace("log-", "");
         cardCache.set(dateKey, card.outerHTML);
     });
 
-    // 2. Async fetcher for individual log permalinks with fallback DOM parsing
     async function fetchLogCard(dateStr, url) {
         if (cardCache.has(dateStr)) {
             return cardCache.get(dateStr);
@@ -28,7 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let card = doc.querySelector(".log-card") || doc.querySelector("article");
 
-            // Fallback parsing if template renders single-page main layout
             if (!card) {
                 const mainContent = doc.querySelector(".content-area") || doc.querySelector("main") || doc.body;
                 card = document.createElement("article");
@@ -49,7 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 3. Render / Update stream container with logs for selected month
     async function displayMonthLogs(year, month, targetDateStr = null) {
         const formattedMonth = String(month + 1).padStart(2, '0');
         const monthPrefix = `${year}-${formattedMonth}`;
@@ -101,7 +97,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // 4. Render Calendar Grid & Header[cite: 4, 8]
     function renderCalendar(year, month) {
         container.innerHTML = "";
 
@@ -173,7 +168,6 @@ document.addEventListener("DOMContentLoaded", () => {
         container.appendChild(grid);
     }
 
-    // 5. Update UI state when changing months[cite: 4, 8]
     function update() {
         const yr = currentDate.getFullYear();
         const mo = currentDate.getMonth();
