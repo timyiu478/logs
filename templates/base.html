@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Succinct Logs{% endblock %}</title>
-    <!-- Premium font for code blocks -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -16,6 +15,13 @@
             <div class="sidebar-sticky">
                 <a href="/" class="brand-title">TY Succinct Logs</a>
                 <p class="brand-desc">Bite-sized daily updates & quick notes.</p>
+
+                <!-- Command + K Trigger Button -->
+                <button id="search-trigger" class="search-trigger-btn">
+                    <span>🔍 Search logs...</span>
+                    <kbd>⌘K</kbd>
+                </button>
+
                 <div id="calendar-container"></div>
             </div>
         </aside>
@@ -23,6 +29,17 @@
         <main class="content-area">
             {% block content %}{% endblock %}
         </main>
+    </div>
+
+    <!-- Spotlight Search Modal -->
+    <div id="search-modal" class="search-modal-overlay" style="display: none;">
+        <div class="search-modal-container">
+            <div class="search-modal-header">
+                <input type="text" id="search-input" placeholder="Search all logs (type to filter...)" autocomplete="off">
+                <kbd class="esc-key">ESC</kbd>
+            </div>
+            <div id="search-results" class="search-results-list"></div>
+        </div>
     </div>
 
     <script>
@@ -35,6 +52,9 @@
             {% endif %}
         };
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elasticlunr/0.9.6/elasticlunr.min.js"></script>
+    <script src="/search_index.en.js"></script>
+    <script src="/js/search.js"></script>
     <script src="/js/calendar.js"></script>
     <script src="/js/art.js"></script>
 </body>

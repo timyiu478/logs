@@ -1,17 +1,29 @@
 document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("calendar-container");
     const streamContainer = document.getElementById("log-stream") || document.querySelector(".log-stream");
-    if (!container || !streamContainer) return;
+    
+    // Only exit if the calendar container element itself is missing
+    if (!container) return;
 
     let currentDate = new Date();
-    const cardCache = new Map(); 
+
+    // If on a single log page, auto-detect date from badge or URL to display the right month
+    const badgeDateEl = document.querySelector(".badge-date");
+    if (badgeDateEl && badgeDateEl.textContent.trim().match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [y, m, d] = badgeDateEl.textContent.trim().split("-").map(Number);
+        currentDate = new Date(y, m - 1, d);
+    }
+
+    const cardCache = new Map(); // In-memory cache: "YYYY-MM-DD" -> HTML string of <article>
     let activeMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
 
+    // 1. Cache initial SSR-rendered cards from DOM on page load
     document.querySelectorAll(".log-card[id^='log-']").forEach(card => {
         const dateKey = card.id.replace("log-", "");
         cardCache.set(dateKey, card.outerHTML);
     });
 
+    // 2. Async fetcher for individual log permalinks
     async function fetchLogCard(dateStr, url) {
         if (cardCache.has(dateStr)) {
             return cardCache.get(dateStr);
@@ -46,7 +58,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // 3. Render / Update stream container with logs for selected month
     async function displayMonthLogs(year, month, targetDateStr = null) {
+        if (!streamContainer) return; // Ignore stream rendering if on a single log page
+
         const formattedMonth = String(month + 1).padStart(2, '0');
         const monthPrefix = `${year}-${formattedMonth}`;
         activeMonth = monthPrefix;
@@ -97,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // 4. Render Calendar Grid & Header
     function renderCalendar(year, month) {
         container.innerHTML = "";
 
@@ -156,7 +172,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 cell.classList.add("has-log");
                 cell.title = `View log for ${dateStr}`;
                 cell.onclick = () => {
-                    displayMonthLogs(year, month, dateStr);
+                    if (streamContainer) {
+                        displayMonthLogs(year, month, dateStr);
+                    } else {
+                        // Direct page navigation when on single log view
+                        window.location.href = logMap[dateStr];
+                    }
                 };
             } else {
                 cell.classList.add("no-log");
@@ -168,6 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
         container.appendChild(grid);
     }
 
+    // 5. Update UI state when changing months
     function update() {
         const yr = currentDate.getFullYear();
         const mo = currentDate.getMonth();
