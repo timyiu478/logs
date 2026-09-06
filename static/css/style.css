@@ -26,7 +26,7 @@ body {
 
 .app-layout {
     display: flex;
-    max-width: 950px;
+    max-width: 1020px;
     margin: 0 auto;
     padding: 30px 20px;
     gap: 24px;
@@ -43,7 +43,10 @@ body {
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.08);
+    /* Layered shadows: a tight inner drop and a wide ambient blur */
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        0 10px 24px -4px rgba(0, 0, 0, 0.08);
 }
 
 .sidebar-sticky {
@@ -70,7 +73,7 @@ body {
 /* Main Content Area */
 .content-area {
     flex: 1;
-    max-width: 620px;
+    max-width: 685px;
     min-width: 0;
 }
 
@@ -176,6 +179,41 @@ body {
 }
 .log-body pre::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.25);
+}
+
+.log-body h1, 
+.log-body h2, 
+.log-body h3 {
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
+    color: var(--text-main);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.log-body a {
+    color: var(--primary);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.log-body a:hover {
+    border-bottom-color: var(--primary);
+}
+
+.log-body blockquote {
+    border-left: 3px solid var(--primary);
+    margin: 16px 0;
+    padding: 10px 16px;
+    background: rgba(90, 0, 220, 0.04);
+    border-radius: 0 8px 8px 0;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.log-body blockquote p {
+    margin: 0; /* Prevents double margins inside the quote */
 }
 
 /* Calendar Widget Styles */
