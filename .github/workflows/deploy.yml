@@ -1,51 +1,37 @@
-name: Deploy Zola site to Pages
+name: Deploy Zola Site to Cloudflare Pages
 
 on:
   push:
-    branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches:
+      - main # Change to 'master' if your primary branch uses that name
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs, as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Build Zola site
-        uses: ShalokShalom/zola-deploy-action@v0.19.2
         with:
-          # Match this to your Zola version if needed
-          version: "0.19.2"
-          # Set to true if you need to fetch git history for last updated dates
-          BUILD_THEMES: false
+          submodules: true # Set to 'recursive' if using Zola themes added as submodules
+          fetch-depth: 0
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Build Zola Site
+        uses: shalzz/zola-deploy-action@v0.19.2
         with:
-          path: public
+          build_only: true
+          # optional: set specific zola version if needed
+          # version: "0.19.2"
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: my-zola-site # Replace with your Cloudflare Pages project name
+          directory: public # Default output directory for Zola
+          gitBranch: main
