@@ -57,5 +57,40 @@
     <script src="/js/search.js"></script>
     <script src="/js/calendar.js"></script>
     <script src="/js/art.js"></script>
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      
+      // 1. Initialize without auto-running
+      mermaid.initialize({ 
+        startOnLoad: false, 
+        theme: 'default' // Matches your site's dark code blocks
+      });
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        // 2. Target Zola's specific data-lang attribute as well as standard classes
+        const blocks = document.querySelectorAll(
+          'pre[data-lang="mermaid"], code[data-lang="mermaid"], code.language-mermaid'
+        );
+        
+        blocks.forEach((block) => {
+          // If we grabbed the <code>, find its parent <pre> to replace the whole block
+          const targetNode = block.tagName === 'CODE' ? block.closest('pre') || block : block;
+          
+          const div = document.createElement("div");
+          div.className = "mermaid";
+          
+          // textContent safely extracts the raw markdown, ignoring any <span> 
+          // tags Zola's syntax highlighter might have injected.
+          div.textContent = block.textContent;
+          
+          targetNode.replaceWith(div);
+        });
+
+        // 3. Command Mermaid to parse the newly created divs
+        await mermaid.run({
+          querySelector: '.mermaid'
+        });
+    });
+  </script>
 </body>
 </html>
