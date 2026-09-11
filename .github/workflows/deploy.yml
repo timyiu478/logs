@@ -31,6 +31,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: my-zola-site # Replace with your Cloudflare Pages project name
+          projectName: logs
           directory: public
-          gitBranch: main
+          branch: main
