@@ -3,7 +3,7 @@ name: Deploy Zola Site to Cloudflare Pages
 on:
   push:
     branches:
-      - main # Change to 'master' if your primary branch uses that name
+      - main
   workflow_dispatch:
 
 jobs:
@@ -17,15 +17,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: true # Set to 'recursive' if using Zola themes added as submodules
+          submodules: true
           fetch-depth: 0
 
+      - name: Install Zola
+        uses: taiki-e/install-action@zola
+
       - name: Build Zola Site
-        uses: shalzz/zola-deploy-action@v0.19.2
-        with:
-          build_only: true
-          # optional: set specific zola version if needed
-          # version: "0.19.2"
+        run: zola build
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
@@ -33,5 +32,5 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: my-zola-site # Replace with your Cloudflare Pages project name
-          directory: public # Default output directory for Zola
+          directory: public
           gitBranch: main
