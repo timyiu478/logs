@@ -1,2 +1,3 @@
-# succinct_logs
-My Succinct Daily Logs
+My Succinct Daily Logs @@
+
+Read Online: https://logs-5tq.pages.dev/
