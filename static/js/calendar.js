@@ -102,6 +102,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         streamContainer.innerHTML = validCards.join("");
 
+        // Rerender Mermaid diagrams for dynamically inserted log cards
+        if (typeof window.renderMermaid === "function") {
+            window.renderMermaid();
+        }
+
         if (targetDateStr) {
             const targetElement = document.getElementById(`log-${targetDateStr}`);
             if (targetElement) {
