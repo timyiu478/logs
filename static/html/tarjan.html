@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2-Bridge Critical Connections Simulator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 720px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 { margin-top: 0; color: #1a1a1a; }
+        .controls { margin-bottom: 20px; }
+        button {
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 4px;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: #0b5ed7; }
+        button:disabled { background-color: #ced4da; cursor: not-allowed; }
+        .explanation {
+            min-height: 54px;
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.4;
+            color: #2b2b2b;
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            background: #f1f3f5;
+            border-left: 5px solid #0d6efd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: left;
+        }
+        svg {
+            background: #fafafa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: visible;
+        }
+        .node circle {
+            fill: #ffffff;
+            stroke: #495057;
+            stroke-width: 2.5;
+            transition: all 0.3s ease;
+        }
+        .node.active circle {
+            stroke: #0d6efd;
+            stroke-width: 4;
+            fill: #e7f1ff;
+        }
+        .node.visited circle {
+            stroke: #198754;
+        }
+        .node text.id {
+            font-size: 15px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            fill: #212529;
+        }
+        .labels {
+            font-size: 11px;
+            fill: #495057;
+            font-family: monospace;
+            font-weight: 600;
+        }
+        .edge {
+            stroke: #adb5bd;
+            stroke-width: 3;
+            transition: all 0.3s ease;
+        }
+        .edge.tree { stroke: #0d6efd; stroke-width: 4; }
+        .edge.back { stroke: #dc3545; stroke-width: 3.5; stroke-dasharray: 6, 4; }
+        .edge.visited { stroke: #198754; stroke-width: 3; }
+        .edge.bridge { stroke: #ffc107; stroke-width: 6; }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 18px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .color-box { width: 14px; height: 14px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Dual-Bridge Graph Simulation</h2>
+    
+    <div class="controls">
+        <button id="prevBtn" onclick="prevStep()" disabled>Previous</button>
+        <button id="nextBtn" onclick="nextStep()">Next Step</button>
+        <button onclick="reset()">Reset</button>
+    </div>
+
+    <div class="explanation" id="explText">Click "Next Step" to begin DFS traversal starting at Node 0.</div>
+
+    <svg width="600" height="260">
+        <!-- Edges -->
+        <!-- Cycle 1 -->
+        <line id="edge-0-1" class="edge" x1="100" y1="80" x2="100" y2="180" />
+        <line id="edge-0-2" class="edge" x1="100" y1="80" x2="200" y2="130" />
+        <line id="edge-1-2" class="edge" x1="100" y1="180" x2="200" y2="130" />
+        
+        <!-- Bridge 1 -->
+        <line id="edge-2-3" class="edge" x1="200" y1="130" x2="300" y2="130" />
+        
+        <!-- Bridge 2 -->
+        <line id="edge-3-4" class="edge" x1="300" y1="130" x2="400" y2="130" />
+        
+        <!-- Cycle 2 -->
+        <line id="edge-4-5" class="edge" x1="400" y1="130" x2="500" y2="80" />
+        <line id="edge-4-6" class="edge" x1="400" y1="130" x2="500" y2="180" />
+        <line id="edge-5-6" class="edge" x1="500" y1="80" x2="500" y2="180" />
+
+        <!-- Nodes -->
+        <g class="node" id="node-0" transform="translate(100, 80)">
+            <circle r="18"></circle>
+            <text class="id">0</text>
+            <text class="labels" y="-28" id="label-0">d:-, l:-</text>
+        </g>
+        <g class="node" id="node-1" transform="translate(100, 180)">
+            <circle r="18"></circle>
+            <text class="id">1</text>
+            <text class="labels" y="32" id="label-1">d:-, l:-</text>
+        </g>
+        <g class="node" id="node-2" transform="translate(200, 130)">
+            <circle r="18"></circle>
+            <text class="id">2</text>
+            <text class="labels" y="-28" id="label-2">d:-, l:-</text>
+        </g>
+        <g class="node" id="node-3" transform="translate(300, 130)">
+            <circle r="18"></circle>
+            <text class="id">3</text>
+            <text class="labels" y="-28" id="label-3">d:-, l:-</text>
+        </g>
+        <g class="node" id="node-4" transform="translate(400, 130)">
+            <circle r="18"></circle>
+            <text class="id">4</text>
+            <text class="labels" y="32" id="label-4">d:-, l:-</text>
+        </g>
+        <g class="node" id="node-5" transform="translate(500, 80)">
+            <circle r="18"></circle>
+            <text class="id">5</text>
+            <text class="labels" y="-28" id="label-5">d:-, l:-</text>
+        </g>
+        <g class="node" id="node-6" transform="translate(500, 180)">
+            <circle r="18"></circle>
+            <text class="id">6</text>
+            <text class="labels" y="32" id="label-6">d:-, l:-</text>
+        </g>
+    </svg>
+
+    <div class="legend">
+        <div class="legend-item"><div class="color-box" style="background: #0d6efd;"></div> Tree Edge</div>
+        <div class="legend-item"><div class="color-box" style="background: #dc3545;"></div> Back-Edge (Cycle)</div>
+        <div class="legend-item"><div class="color-box" style="background: #198754;"></div> Visited Edge</div>
+        <div class="legend-item"><div class="color-box" style="background: #ffc107;"></div> Bridge Edge</div>
+    </div>
+</div>
+
+<script>
+    const steps = [
+        {
+            msg: "Start DFS at Node 0. Initialize disc[0]=1, low[0]=1.",
+            nodes: {0: {d:1, l:1, state:'active'}},
+            edges: {}
+        },
+        {
+            msg: "Traverse to unvisited Node 1. Set disc[1]=2, low[1]=2.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'active'}},
+            edges: {'0-1': 'tree'}
+        },
+        {
+            msg: "Traverse to unvisited Node 2. Set disc[2]=3, low[2]=3.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:3, state:'active'}},
+            edges: {'0-1': 'tree', '1-2': 'tree'}
+        },
+        {
+            msg: "Node 2 sees already visited Node 0! Back-edge found! Update low[2] = min(3, disc[0]) = 1.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:1, state:'active'}},
+            edges: {'0-1': 'tree', '1-2': 'tree', '0-2': 'back'}
+        },
+        {
+            msg: "Node 2 continues to unvisited Node 3. Set disc[3]=4, low[3]=4.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'active'}},
+            edges: {'0-1': 'tree', '1-2': 'tree', '0-2': 'back', '2-3': 'tree'}
+        },
+        {
+            msg: "Node 3 traverses to unvisited Node 4. Set disc[4]=5, low[4]=5.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'visited'}, 4: {d:5, l:5, state:'active'}},
+            edges: {'0-1': 'tree', '1-2': 'tree', '0-2': 'back', '2-3': 'tree', '3-4': 'tree'}
+        },
+        {
+            msg: "Node 4 traverses to unvisited Node 5. Set disc[5]=6, low[5]=6.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'visited'}, 4: {d:5, l:5, state:'visited'}, 5: {d:6, l:6, state:'active'}},
+            edges: {'0-1': 'tree', '1-2': 'tree', '0-2': 'back', '2-3': 'tree', '3-4': 'tree', '4-5': 'tree'}
+        },
+        {
+            msg: "Node 5 traverses to unvisited Node 6. Set disc[6]=7, low[6]=7.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'visited'}, 4: {d:5, l:5, state:'visited'}, 5: {d:6, l:6, state:'visited'}, 6: {d:7, l:7, state:'active'}},
+            edges: {'0-1': 'tree', '1-2': 'tree', '0-2': 'back', '2-3': 'tree', '3-4': 'tree', '4-5': 'tree', '5-6': 'tree'}
+        },
+        {
+            msg: "Node 6 sees already visited Node 4! Back-edge found! Update low[6] = min(7, disc[4]) = 5.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'visited'}, 4: {d:5, l:5, state:'visited'}, 5: {d:6, l:6, state:'visited'}, 6: {d:7, l:5, state:'active'}},
+            edges: {'0-1': 'tree', '1-2': 'tree', '0-2': 'back', '2-3': 'tree', '3-4': 'tree', '4-5': 'tree', '5-6': 'tree', '4-6': 'back'}
+        },
+        {
+            msg: "Backtrack to 5. Update low[5] = min(6, low[6]) = 5. Check bridge for (5,6): is low[6](5) > disc[5](6)? NO.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'visited'}, 4: {d:5, l:5, state:'visited'}, 5: {d:6, l:5, state:'active'}, 6: {d:7, l:5, state:'visited'}},
+            edges: {'0-1': 'tree', '1-2': 'tree', '0-2': 'back', '2-3': 'tree', '3-4': 'tree', '4-5': 'tree', '5-6': 'visited', '4-6': 'back'}
+        },
+        {
+            msg: "Backtrack to 4. Update low[4] = min(5, low[5]) = 5. Check bridge for (4,5): is low[5](5) > disc[4](5)? NO.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'visited'}, 4: {d:5, l:5, state:'active'}, 5: {d:6, l:5, state:'visited'}, 6: {d:7, l:5, state:'visited'}},
+            edges: {'0-1': 'tree', '1-2': 'tree', '0-2': 'back', '2-3': 'tree', '3-4': 'tree', '4-5': 'visited', '5-6': 'visited', '4-6': 'back'}
+        },
+        {
+            msg: "Backtrack to 3. Update low[3] = min(4, low[4]) = 4. Check bridge for (3,4): is low[4](5) > disc[3](4)? YES! Bridge #1!",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'active'}, 4: {d:5, l:5, state:'visited'}, 5: {d:6, l:5, state:'visited'}, 6: {d:7, l:5, state:'visited'}},
+            edges: {'0-1': 'tree', '1-2': 'tree', '0-2': 'back', '2-3': 'tree', '3-4': 'bridge', '4-5': 'visited', '5-6': 'visited', '4-6': 'back'}
+        },
+        {
+            msg: "Backtrack to 2. Update low[2] = min(1, low[3]) = 1. Check bridge for (2,3): is low[3](4) > disc[2](3)? YES! Bridge #2!",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:2, state:'visited'}, 2: {d:3, l:1, state:'active'}, 3: {d:4, l:4, state:'visited'}, 4: {d:5, l:5, state:'visited'}, 5: {d:6, l:5, state:'visited'}, 6: {d:7, l:5, state:'visited'}},
+            edges: {'0-1': 'tree', '1-2': 'tree', '0-2': 'back', '2-3': 'bridge', '3-4': 'bridge', '4-5': 'visited', '5-6': 'visited', '4-6': 'back'}
+        },
+        {
+            msg: "Backtrack to 1. Update low[1] = min(2, low[2]) = 1. Check bridge for (1,2): is low[2](1) > disc[1](2)? NO.",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:1, state:'active'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'visited'}, 4: {d:5, l:5, state:'visited'}, 5: {d:6, l:5, state:'visited'}, 6: {d:7, l:5, state:'visited'}},
+            edges: {'0-1': 'tree', '1-2': 'visited', '0-2': 'back', '2-3': 'bridge', '3-4': 'bridge', '4-5': 'visited', '5-6': 'visited', '4-6': 'back'}
+        },
+        {
+            msg: "Backtrack to 0. Update low[0] = min(1, low[1]) = 1. Check bridge for (0,1): is low[1](1) > disc[0](1)? NO.",
+            nodes: {0: {d:1, l:1, state:'active'}, 1: {d:2, l:1, state:'visited'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'visited'}, 4: {d:5, l:5, state:'visited'}, 5: {d:6, l:5, state:'visited'}, 6: {d:7, l:5, state:'visited'}},
+            edges: {'0-1': 'visited', '1-2': 'visited', '0-2': 'back', '2-3': 'bridge', '3-4': 'bridge', '4-5': 'visited', '5-6': 'visited', '4-6': 'back'}
+        },
+        {
+            msg: "DFS Complete! The algorithm successfully found BOTH critical connections: [3, 4] and [2, 3].",
+            nodes: {0: {d:1, l:1, state:'visited'}, 1: {d:2, l:1, state:'visited'}, 2: {d:3, l:1, state:'visited'}, 3: {d:4, l:4, state:'visited'}, 4: {d:5, l:5, state:'visited'}, 5: {d:6, l:5, state:'visited'}, 6: {d:7, l:5, state:'visited'}},
+            edges: {'0-1': 'visited', '1-2': 'visited', '0-2': 'back', '2-3': 'bridge', '3-4': 'bridge', '4-5': 'visited', '5-6': 'visited', '4-6': 'back'}
+        }
+    ];
+
+    let currentStep = -1;
+
+    function updateVisuals(stepData) {
+        if (!stepData) return;
+        
+        document.getElementById('explText').innerText = stepData.msg;
+
+        // Reset elements
+        document.querySelectorAll('.node').forEach(el => el.className.baseVal = 'node');
+        document.querySelectorAll('.edge').forEach(el => el.className.baseVal = 'edge');
+        document.querySelectorAll('.labels').forEach(el => el.textContent = 'd:-, l:-');
+
+        // Apply Node States
+        for (const [nodeId, data] of Object.entries(stepData.nodes)) {
+            const nodeEl = document.getElementById(`node-${nodeId}`);
+            if (nodeEl) {
+                nodeEl.className.baseVal = `node ${data.state}`;
+                document.getElementById(`label-${nodeId}`).textContent = `d:${data.d}, l:${data.l}`;
+            }
+        }
+
+        // Apply Edge States
+        for (const [edgeKey, state] of Object.entries(stepData.edges)) {
+            let edgeEl = document.getElementById(`edge-${edgeKey}`);
+            if (!edgeEl) {
+                // Check reverse id string if drawn backwards
+                const [u, v] = edgeKey.split('-');
+                edgeEl = document.getElementById(`edge-${v}-${u}`);
+            }
+            if (edgeEl) {
+                edgeEl.className.baseVal = `edge ${state}`;
+            }
+        }
+    }
+
+    function nextStep() {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            updateVisuals(steps[currentStep]);
+            document.getElementById('prevBtn').disabled = false;
+        }
+        if (currentStep === steps.length - 1) {
+            document.getElementById('nextBtn').disabled = true;
+        }
+    }
+
+    function prevStep() {
+        if (currentStep > 0) {
+            currentStep--;
+            updateVisuals(steps[currentStep]);
+            document.getElementById('nextBtn').disabled = false;
+        }
+        if (currentStep === 0) {
+            document.getElementById('prevBtn').disabled = true;
+        }
+    }
+
+    function reset() {
+        currentStep = -1;
+        document.getElementById('explText').innerText = 'Click "Next Step" to begin DFS traversal starting at Node 0.';
+        document.querySelectorAll('.node').forEach(el => el.className.baseVal = 'node');
+        document.querySelectorAll('.edge').forEach(el => el.className.baseVal = 'edge');
+        document.querySelectorAll('.labels').forEach(el => el.textContent = 'd:-, l:-');
+        document.getElementById('prevBtn').disabled = true;
+        document.getElementById('nextBtn').disabled = false;
+    }
+</script>
+
+</body>
+</html>
