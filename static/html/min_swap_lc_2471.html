@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permutation Cycle K-1 Simulation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f0f2f5;
+            color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 10px;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            max-width: 600px;
+            width: 100%;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #2563eb;
+            color: white;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #1d4ed8; }
+        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            flex: 1;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-top: 5px;
+            transition: color 0.3s;
+        }
+        .stat-value.highlight-shrink {
+            color: #ea580c;
+            transform: scale(1.1);
+        }
+
+        .array-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .row-label {
+            width: 120px;
+            font-weight: 600;
+            color: #475569;
+        }
+        .array-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .array-box {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .array-box::after {
+            content: attr(data-index);
+            position: absolute;
+            bottom: -22px;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: normal;
+        }
+        
+        /* States */
+        .highlight-swap {
+            background-color: #fef08a;
+            border-color: #eab308;
+            transform: translateY(-5px);
+            z-index: 10;
+        }
+        .sorted {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
+        }
+        .in-active-cycle {
+            border-color: #3b82f6;
+            border-width: 3px;
+        }
+
+        #narrative-container {
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.6;
+            min-height: 100px;
+            margin-top: 30px;
+        }
+        .log-accent { color: #60a5fa; font-weight: bold; }
+        .log-success { color: #4ade80; font-weight: bold; }
+        .log-math { color: #facc15; font-weight: bold; font-family: monospace; font-size: 18px;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Permutation Cycle (K to K-1) Simulation</h2>
+    
+    <div class="controls">
+        <!-- Multiple cycles example by default -->
+        <input type="text" id="array-input" value="30, 10, 20, 60, 50, 40" placeholder="e.g. 40, 30, 10, 20">
+        <button onclick="loadArray()">Analyze Cycles</button>
+        <button id="next-btn" onclick="nextStep()" disabled>Next Swap</button>
+    </div>
+
+    <div class="dashboard">
+        <div class="stat-card">
+            <div>Active Cycle</div>
+            <div id="stat-cycle-id" class="stat-value">-</div>
+        </div>
+        <div class="stat-card">
+            <div>Current Cycle Size (K)</div>
+            <div id="stat-k" class="stat-value">-</div>
+        </div>
+        <div class="stat-card">
+            <div>Total Swaps</div>
+            <div id="stat-swaps" class="stat-value">0</div>
+        </div>
+    </div>
+    
+    <div class="array-row" style="margin-bottom: 40px;">
+        <div class="row-label">Current State</div>
+        <div id="current-array" class="array-container"></div>
+    </div>
+    
+    <div class="array-row" style="opacity: 0.7;">
+        <div class="row-label">Sorted Target</div>
+        <div id="target-array" class="array-container"></div>
+    </div>
+
+    <div id="narrative-container">
+        Enter an array and click "Analyze Cycles" to begin.
+    </div>
+</div>
+
+<script>
+    let arr = [];
+    let target = [];
+    let steps = [];
+    let currentStep = 0;
+    let totalSwapsDone = 0;
+    let isAnimating = false;
+    
+    function setNarrative(html) {
+        document.getElementById('narrative-container').innerHTML = html;
+    }
+
+    function loadArray() {
+        const input = document.getElementById('array-input').value;
+        arr = input.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+        target = [...arr].sort((a, b) => a - b);
+        
+        currentStep = 0;
+        totalSwapsDone = 0;
+        steps = [];
+        
+        document.getElementById('stat-cycle-id').innerText = '-';
+        document.getElementById('stat-k').innerText = '-';
+        document.getElementById('stat-swaps').innerText = '0';
+        
+        renderArrays();
+        precomputeCyclesAndSteps();
+        
+        document.getElementById('next-btn').disabled = steps.length === 0;
+        if(steps.length === 0) {
+            setNarrative('<span class="log-success">Array is already sorted! No cycles to resolve.</span>');
+            checkSortedColors();
+        }
+    }
+
+    function renderArrays() {
+        const currContainer = document.getElementById('current-array');
+        const targetContainer = document.getElementById('target-array');
+        currContainer.innerHTML = '';
+        targetContainer.innerHTML = '';
+        
+        arr.forEach((val, index) => {
+            // Current Box
+            const box = document.createElement('div');
+            box.className = 'array-box';
+            box.id = `box-${index}`;
+            box.innerText = val;
+            box.setAttribute('data-index', `idx: ${index}`);
+            currContainer.appendChild(box);
+
+            // Target Box (Static Reference)
+            const targetBox = document.createElement('div');
+            targetBox.className = 'array-box sorted';
+            targetBox.innerText = target[index];
+            targetBox.setAttribute('data-index', `idx: ${index}`);
+            targetContainer.appendChild(targetBox);
+        });
+    }
+
+    function precomputeCyclesAndSteps() {
+        let tempArr = [...arr];
+        let visited = new Array(tempArr.length).fill(false);
+        let cycleCount = 0;
+
+        // 1. Identify all disjoint cycles
+        for (let i = 0; i < tempArr.length; i++) {
+            if (visited[i] || tempArr[i] === target[i]) {
+                visited[i] = true;
+                continue;
+            }
+
+            cycleCount++;
+            let currentK = 0;
+            let currIdx = i;
+            let cycleIndices = [];
+            
+            // Trace the cycle to get its size
+            while (!visited[currIdx]) {
+                visited[currIdx] = true;
+                cycleIndices.push(currIdx);
+                currIdx = target.indexOf(tempArr[currIdx]);
+                currentK++;
+            }
+
+            // 2. Generate the swaps to resolve THIS cycle
+            let anchorIdx = cycleIndices[0]; // We keep swapping from the anchor
+            
+            while (tempArr[anchorIdx] !== target[anchorIdx]) {
+                let valToMove = tempArr[anchorIdx];
+                let targetIdx = target.indexOf(valToMove);
+                let valAtTarget = tempArr[targetIdx];
+
+                steps.push({
+                    cycleId: cycleCount,
+                    kBefore: currentK,
+                    kAfter: currentK - 1,
+                    idx1: anchorIdx,
+                    idx2: targetIdx,
+                    val1: valToMove,
+                    val2: valAtTarget,
+                    cycleIndices: [...cycleIndices] // for highlighting
+                });
+
+                // Perform swap in temporary array
+                tempArr[anchorIdx] = valAtTarget;
+                tempArr[targetIdx] = valToMove;
+                currentK--;
+            }
+        }
+        
+        let msg = `Found <span class="log-accent">${cycleCount} cycles</span> that need sorting.<br><br>`;
+        msg += `Formula: Swaps = N - C. (Total elements - Total cycles).<br>`;
+        msg += `Click <b>Next Swap</b> to see how every swap correctly places 1 element and shrinks a cycle.`;
+        setNarrative(msg);
+        checkSortedColors();
+    }
+
+    function updateDashboard(cycleId, currentK, nextK) {
+        document.getElementById('stat-cycle-id').innerText = cycleId;
+        
+        const kStat = document.getElementById('stat-k');
+        kStat.innerText = currentK;
+        kStat.classList.add('highlight-shrink');
+        
+        setTimeout(() => {
+            kStat.innerText = nextK;
+            kStat.classList.remove('highlight-shrink');
+        }, 800);
+
+        document.getElementById('stat-swaps').innerText = totalSwapsDone;
+    }
+
+    function checkSortedColors() {
+        arr.forEach((val, index) => {
+            const box = document.getElementById(`box-${index}`);
+            if (val === target[index]) {
+                box.classList.add('sorted');
+                box.classList.remove('in-active-cycle');
+            }
+        });
+    }
+
+    function nextStep() {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        const step = steps[currentStep];
+        const box1 = document.getElementById(`box-${step.idx1}`);
+        const box2 = document.getElementById(`box-${step.idx2}`);
+
+        // Highlight active cycle members
+        arr.forEach((v, i) => {
+            const box = document.getElementById(`box-${i}`);
+            if(step.cycleIndices.includes(i) && arr[i] !== target[i]) {
+                box.classList.add('in-active-cycle');
+            }
+        });
+
+        // Narrative
+        let narrative = `<b>Resolving Cycle ${step.cycleId}</b><br><br>`;
+        narrative += `Looking at index <span class="log-accent">${step.idx1}</span>. It holds <span class="log-accent">${step.val1}</span>.<br>`;
+        narrative += `Target array shows <span class="log-accent">${step.val1}</span> belongs at index <span class="log-accent">${step.idx2}</span>.<br>`;
+        narrative += `Swapping index ${step.idx1} and ${step.idx2}...`;
+        setNarrative(narrative);
+
+        // Highlight swap
+        box1.classList.add('highlight-swap');
+        box2.classList.add('highlight-swap');
+
+        // Execute Swap animation
+        setTimeout(() => {
+            // Logic Swap
+            arr[step.idx1] = step.val2;
+            arr[step.idx2] = step.val1;
+            totalSwapsDone++;
+
+            // UI Swap
+            box1.innerText = step.val2;
+            box2.innerText = step.val1;
+
+            updateDashboard(step.cycleId, step.kBefore, step.kAfter);
+            checkSortedColors();
+
+            // Post-swap narrative
+            setTimeout(() => {
+                box1.classList.remove('highlight-swap');
+                box2.classList.remove('highlight-swap');
+                
+                let successMsg = `<b>Success!</b> <span class="log-success">${step.val1}</span> is now permanently locked into its correct spot.<br><br>`;
+                
+                if (step.kAfter === 1) {
+                    successMsg += `The element it swapped with (<span class="log-success">${step.val2}</span>) accidentally fell into its correct spot too!<br>`;
+                    successMsg += `<span class="log-math">Cycle resolved! (K went from 2 to 0)</span>`;
+                } else {
+                    successMsg += `Because we fixed 1 element, the cycle shrinks: <span class="log-math">K = ${step.kBefore} &rarr; ${step.kAfter}</span>.`;
+                }
+                
+                setNarrative(successMsg);
+                
+                currentStep++;
+                isAnimating = false;
+                
+                if (currentStep >= steps.length) {
+                    setNarrative(`<span class="log-success">All cycles resolved! Total swaps performed: ${totalSwapsDone}</span>`);
+                    document.getElementById('next-btn').disabled = true;
+                    document.getElementById('stat-cycle-id').innerText = '-';
+                    document.getElementById('stat-k').innerText = '0';
+                }
+            }, 600);
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
