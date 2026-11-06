@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="taxonomy-page">
+    <h1>{{ term.name }}</h1>
+    {% if term.pages %}
+      <ul>
+        {% for page in term.pages %}
+          <li><a href="{{ page.permalink }}">{{ page.title }}</a></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endblock %}
