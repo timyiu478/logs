@@ -8,7 +8,6 @@
     <title>{% block title %}Succinct Logs{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/tags.css">
 </head>
 <body>
     <canvas id="dynamic-art-bg"></canvas>
@@ -26,32 +25,9 @@
 
                 <div id="calendar-container"></div>
             </div>
-
-            <section id="tag-panel" class="tag-panel" aria-labelledby="tag-heading">
-                <div class="tag-panel-heading">
-                    <h2 id="tag-heading">Tags</h2>
-                    <button id="tag-reset" class="tag-reset" type="button" hidden>Reset</button>
-                </div>
-                <div id="tag-list" class="tag-list" aria-label="Filter log entries by tag">
-                    {% if site.taxonomies.tags %}
-                        {% for tag in site.taxonomies.tags %}
-                            <button type="button" class="tag-chip" data-tag="{{ tag.name }}" aria-pressed="false">
-                                <span>{{ tag.name }}</span>
-                                <span class="tag-count">{{ tag.pages | length }}</span>
-                            </button>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-                <p id="tag-empty" class="tag-empty" {% if site.taxonomies.tags %}hidden{% endif %}>No tags yet.</p>
-            </section>
         </aside>
 
         <main class="content-area">
-            <div id="tag-filter-status" class="tag-filter-status" aria-live="polite" hidden>
-                <span>Showing entries tagged</span>
-                <button id="active-tag" class="active-tag" type="button"></button>
-                <span id="tag-match-count" class="tag-match-count"></span>
-            </div>
             {% block content %}{% endblock %}
         </main>
     </div>
@@ -93,7 +69,6 @@
     <script src="/js/search.js"></script>
     <script src="/js/calendar.js"></script>
     <script src="/js/art.js"></script>
-    <script src="/js/tags.js"></script>
     <script type="module">
       import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
       mermaid.initialize({ startOnLoad: false, theme: 'default' });
