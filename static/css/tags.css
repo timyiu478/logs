@@ -1,7 +1,16 @@
-/* Interactive tag filtering with a scrollable cloud and hidden scrollbar. */
+/* Zola taxonomy tag cloud and filtering controls. */
 .tag-panel {
     margin-top: 20px;
     padding: 0 4px;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.tag-panel.is-scrolled-away {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
 }
 
 .tag-panel-heading {
@@ -29,7 +38,6 @@
     font-size: 0.72rem;
     cursor: pointer;
 }
-
 .tag-reset:hover { color: var(--primary); }
 
 .tag-list {
@@ -44,7 +52,6 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
-
 .tag-list::-webkit-scrollbar { display: none; }
 
 .tag-chip, .entry-tag, .active-tag {
@@ -59,36 +66,35 @@
     cursor: pointer;
     transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
 }
-
 .tag-chip {
     max-width: 100%;
     padding: 5px 9px;
     font-size: 0.68rem;
     text-align: left;
 }
-
 .tag-chip:hover, .entry-tag:hover {
     border-color: rgba(90, 0, 220, 0.22);
     background: rgba(90, 0, 220, 0.07);
     color: var(--primary);
     transform: translateY(-1px);
 }
-
 .tag-chip.is-active, .active-tag {
     border-color: var(--primary);
     background: var(--primary);
     color: #fff;
 }
+.tag-count { opacity: 0.68; font-size: 0.62rem; }
+.tag-empty { margin: 0; color: var(--text-muted); font-size: 0.75rem; }
 
-.tag-count {
-    opacity: 0.68;
-    font-size: 0.62rem;
+.log-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 4px 0 8px;
 }
-
-.tag-empty {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 0.75rem;
+.entry-tag {
+    padding: 3px 8px;
+    font-size: 0.66rem;
 }
 
 .tag-filter-status {
@@ -104,30 +110,11 @@
     color: var(--text-muted);
     font-size: 0.75rem;
 }
-
-.active-tag {
-    padding: 3px 8px;
-    font-size: 0.68rem;
-}
-
+.active-tag { padding: 3px 8px; font-size: 0.68rem; }
 .tag-match-count {
     margin-left: auto;
     font-family: "JetBrains Mono", ui-monospace, monospace;
     font-size: 0.68rem;
-}
-
-.log-entry {
-    position: relative;
-    padding-top: 11px;
-    border-top: 1px solid rgba(15, 23, 42, 0.07);
-}
-
-.log-entry + .log-entry { margin-top: 18px; }
-
-.entry-tag {
-    margin: 0 0 3px;
-    padding: 3px 8px;
-    font-size: 0.66rem;
 }
 
 [hidden] { display: none !important; }

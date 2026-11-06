@@ -8,6 +8,13 @@
             <a href="{{ page.permalink }}" class="log-subtitle">{{ page.title }}</a>
         {% endif %}
     </div>
+    {% if page.taxonomies.tags %}
+        <div class="log-tags" aria-label="Tags">
+            {% for tag in page.taxonomies.tags %}
+                <button type="button" class="entry-tag" data-tag="{{ tag }}">[{{ tag }}]</button>
+            {% endfor %}
+        </div>
+    {% endif %}
     <div class="log-body">
         {{ page.content | safe }}
     </div>

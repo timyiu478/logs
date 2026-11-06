@@ -33,8 +33,17 @@
                     <h2 id="tag-heading">Tags</h2>
                     <button id="tag-reset" class="tag-reset" type="button" hidden>Clear</button>
                 </div>
-                <div id="tag-list" class="tag-list" aria-label="Filter log entries by tag"></div>
-                <p id="tag-empty" class="tag-empty" hidden>No tags on this page yet.</p>
+                <div id="tag-list" class="tag-list" aria-label="Filter log entries by tag">
+                    {% if site.taxonomies.tags %}
+                        {% for tag in site.taxonomies.tags %}
+                            <button type="button" class="tag-chip" data-tag="{{ tag.name }}" aria-pressed="false">
+                                <span>{{ tag.name }}</span>
+                                <span class="tag-count">{{ tag.pages | length }}</span>
+                            </button>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <p id="tag-empty" class="tag-empty" {% if site.taxonomies.tags %}hidden{% endif %}>No tags yet.</p>
             </section>
         </aside>
 
@@ -93,33 +102,23 @@
     <script type="module">
       import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
 
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: 'default'
-      });
+      mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
-      // Global function to process and render unprocessed Mermaid blocks
       window.renderMermaid = async () => {
         const blocks = document.querySelectorAll(
           'pre[data-lang="mermaid"], code[data-lang="mermaid"], code.language-mermaid'
         );
-
         blocks.forEach((block) => {
           const targetNode = block.tagName === 'CODE' ? block.closest('pre') || block : block;
-
           const div = document.createElement("div");
           div.className = "mermaid";
           div.textContent = block.textContent;
-
           targetNode.replaceWith(div);
         });
-
         await mermaid.run({ querySelector: '.mermaid' });
       };
 
-      document.addEventListener("DOMContentLoaded", () => {
-        window.renderMermaid();
-      });
+      document.addEventListener("DOMContentLoaded", () => window.renderMermaid());
     </script>
 </body>
 </html>

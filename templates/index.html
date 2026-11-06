@@ -8,7 +8,7 @@
     {% set_global count = 0 %}
     {% for page in logs.pages %}
         {% set page_year_month = page.date | date(format="%Y-%m") %}
-        
+
         {% if page_year_month == current_year_month %}
             {% set_global count = count + 1 %}
             <article class="log-card" id="log-{{ page.date }}">
@@ -18,6 +18,13 @@
                         <a href="{{ page.permalink }}" class="log-subtitle">{{ page.title }}</a>
                     {% endif %}
                 </div>
+                {% if page.taxonomies.tags %}
+                    <div class="log-tags" aria-label="Tags">
+                        {% for tag in page.taxonomies.tags %}
+                            <button type="button" class="entry-tag" data-tag="{{ tag }}">[{{ tag }}]</button>
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 <div class="log-body">
                     {{ page.content | safe }}
                 </div>
