@@ -19,7 +19,6 @@
                 <a href="/" class="brand-title">TY Succinct Logs</a>
                 <p class="brand-desc">Bite-sized daily updates &amp; quick notes.</p>
 
-                <!-- Command + K Trigger Button -->
                 <button id="search-trigger" class="search-trigger-btn" type="button">
                     <span>🔍 Search logs...</span>
                     <kbd>⌘K</kbd>
@@ -31,7 +30,7 @@
             <section id="tag-panel" class="tag-panel" aria-labelledby="tag-heading">
                 <div class="tag-panel-heading">
                     <h2 id="tag-heading">Tags</h2>
-                    <button id="tag-reset" class="tag-reset" type="button" hidden>Clear</button>
+                    <button id="tag-reset" class="tag-reset" type="button" hidden>Reset</button>
                 </div>
                 <div id="tag-list" class="tag-list" aria-label="Filter log entries by tag">
                     {% if site.taxonomies.tags %}
@@ -57,7 +56,6 @@
         </main>
     </div>
 
-    <!-- Spotlight Search Modal -->
     <div id="search-modal" class="search-modal-overlay" style="display: none;">
         <div class="search-modal-container">
             <div class="search-modal-header">
@@ -78,10 +76,7 @@
             {% endif %}
         };
     </script>
-    <!-- KaTeX CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-
-    <!-- KaTeX JavaScript -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {
@@ -101,24 +96,19 @@
     <script src="/js/tags.js"></script>
     <script type="module">
       import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-
       mermaid.initialize({ startOnLoad: false, theme: 'default' });
-
       window.renderMermaid = async () => {
-        const blocks = document.querySelectorAll(
-          'pre[data-lang="mermaid"], code[data-lang="mermaid"], code.language-mermaid'
-        );
+        const blocks = document.querySelectorAll('pre[data-lang="mermaid"], code[data-lang="mermaid"], code.language-mermaid');
         blocks.forEach((block) => {
           const targetNode = block.tagName === 'CODE' ? block.closest('pre') || block : block;
-          const div = document.createElement("div");
-          div.className = "mermaid";
+          const div = document.createElement('div');
+          div.className = 'mermaid';
           div.textContent = block.textContent;
           targetNode.replaceWith(div);
         });
         await mermaid.run({ querySelector: '.mermaid' });
       };
-
-      document.addEventListener("DOMContentLoaded", () => window.renderMermaid());
+      document.addEventListener('DOMContentLoaded', () => window.renderMermaid());
     </script>
 </body>
 </html>

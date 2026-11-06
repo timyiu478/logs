@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const activeTag = document.getElementById("active-tag");
     const matchCount = document.getElementById("tag-match-count");
     const resetButton = document.getElementById("tag-reset");
-    const tagPanel = document.getElementById("tag-panel");
 
     if (!tagList || !status || !activeTag || !matchCount || !resetButton) return;
 
@@ -16,14 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
         let matches = 0;
 
         cards.forEach((card) => {
-            const tags = Array.from(card.querySelectorAll("[data-tag].entry-tag"))
+            const tags = Array.from(card.querySelectorAll(".entry-tag[data-tag]"))
                 .map((button) => button.dataset.tag);
             const visible = !selectedTag || tags.includes(selectedTag);
             card.hidden = !visible;
             if (visible) matches += 1;
         });
 
-        tagList.querySelectorAll(".tag-chip").forEach((button) => {
+        tagList.querySelectorAll(".tag-chip[data-tag]").forEach((button) => {
             const isActive = button.dataset.tag === selectedTag;
             button.classList.toggle("is-active", isActive);
             button.setAttribute("aria-pressed", String(isActive));
@@ -33,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         resetButton.hidden = !selectedTag;
         if (selectedTag) {
             activeTag.textContent = `[${selectedTag}] ×`;
-            matchCount.textContent = `${matches} ${matches === 1 ? "entry" : "entries"} on this page`;
+            matchCount.textContent = `${matches} ${matches === 1 ? "entry" : "entries"}`;
         }
     }
 
@@ -47,24 +46,4 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".log-tags").forEach((group) => group.addEventListener("click", handleTagClick));
     resetButton.addEventListener("click", () => updateFilter(null));
     activeTag.addEventListener("click", () => updateFilter(null));
-
-    // Keep the tag cloud out of the way while scrolling down; reveal it again
-    // when the reader scrolls upward or returns to the top.
-    if (tagPanel) {
-        let previousY = window.scrollY;
-        let ticking = false;
-
-        window.addEventListener("scroll", () => {
-            if (ticking) return;
-            ticking = true;
-            window.requestAnimationFrame(() => {
-                const currentY = window.scrollY;
-                const scrollingDown = currentY > previousY;
-                tagPanel.classList.toggle("is-scrolled-away", currentY > 80 && scrollingDown);
-                if (currentY <= 80 || !scrollingDown) tagPanel.classList.remove("is-scrolled-away");
-                previousY = currentY;
-                ticking = false;
-            });
-        }, { passive: true });
-    }
 });

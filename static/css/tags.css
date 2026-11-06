@@ -1,20 +1,32 @@
 /* Zola taxonomy tag cloud and filtering controls. */
 .tag-panel {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
     margin-top: 20px;
     padding: 0 4px;
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 180ms ease, transform 180ms ease;
 }
 
-.tag-panel.is-scrolled-away {
-    opacity: 0;
-    transform: translateY(-10px);
-    pointer-events: none;
+.sidebar {
+    position: sticky;
+    top: 24px;
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 48px);
+    min-height: 0;
+}
+
+.sidebar-sticky {
+    position: static;
+    top: auto;
+    flex: 0 0 auto;
 }
 
 .tag-panel-heading {
     display: flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 8px;
@@ -42,9 +54,11 @@
 
 .tag-list {
     display: flex;
+    flex: 1 1 auto;
     flex-wrap: wrap;
     align-content: flex-start;
     gap: 7px;
+    min-height: 0;
     max-height: 190px;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -92,10 +106,7 @@
     gap: 5px;
     margin: 4px 0 8px;
 }
-.entry-tag {
-    padding: 3px 8px;
-    font-size: 0.66rem;
-}
+.entry-tag { padding: 3px 8px; font-size: 0.66rem; }
 
 .tag-filter-status {
     display: flex;
@@ -120,6 +131,20 @@
 [hidden] { display: none !important; }
 
 @media (max-width: 768px) {
-    .tag-panel { margin-top: 16px; }
-    .tag-list { max-height: 150px; }
+    .sidebar {
+        position: static;
+        display: block;
+        max-height: none;
+    }
+    .sidebar-sticky { position: static; }
+    .tag-panel { display: block; margin-top: 16px; }
+    .tag-list {
+        display: flex;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tag-chip, .entry-tag, .active-tag { transition: none; }
 }
