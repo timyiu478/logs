@@ -8,6 +8,7 @@
     <title>{% block title %}Succinct Logs{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/tags.css">
 </head>
 <body>
     <canvas id="dynamic-art-bg"></canvas>
@@ -16,19 +17,33 @@
         <aside class="sidebar">
             <div class="sidebar-sticky">
                 <a href="/" class="brand-title">TY Succinct Logs</a>
-                <p class="brand-desc">Bite-sized daily updates & quick notes.</p>
+                <p class="brand-desc">Bite-sized daily updates &amp; quick notes.</p>
 
                 <!-- Command + K Trigger Button -->
-                <button id="search-trigger" class="search-trigger-btn">
+                <button id="search-trigger" class="search-trigger-btn" type="button">
                     <span>🔍 Search logs...</span>
                     <kbd>⌘K</kbd>
                 </button>
 
                 <div id="calendar-container"></div>
             </div>
+
+            <section id="tag-panel" class="tag-panel" aria-labelledby="tag-heading">
+                <div class="tag-panel-heading">
+                    <h2 id="tag-heading">Tags</h2>
+                    <button id="tag-reset" class="tag-reset" type="button" hidden>Clear</button>
+                </div>
+                <div id="tag-list" class="tag-list" aria-label="Filter log entries by tag"></div>
+                <p id="tag-empty" class="tag-empty" hidden>No tags on this page yet.</p>
+            </section>
         </aside>
 
         <main class="content-area">
+            <div id="tag-filter-status" class="tag-filter-status" aria-live="polite" hidden>
+                <span>Showing entries tagged</span>
+                <button id="active-tag" class="active-tag" type="button"></button>
+                <span id="tag-match-count" class="tag-match-count"></span>
+            </div>
             {% block content %}{% endblock %}
         </main>
     </div>
@@ -58,7 +73,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
 
     <!-- KaTeX JavaScript -->
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
         onload="renderMathInElement(document.body, {
@@ -75,12 +89,13 @@
     <script src="/js/search.js"></script>
     <script src="/js/calendar.js"></script>
     <script src="/js/art.js"></script>
+    <script src="/js/tags.js"></script>
     <script type="module">
       import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-      
-      mermaid.initialize({ 
-        startOnLoad: false, 
-        theme: 'default' 
+
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'default'
       });
 
       // Global function to process and render unprocessed Mermaid blocks
@@ -88,21 +103,18 @@
         const blocks = document.querySelectorAll(
           'pre[data-lang="mermaid"], code[data-lang="mermaid"], code.language-mermaid'
         );
-        
+
         blocks.forEach((block) => {
           const targetNode = block.tagName === 'CODE' ? block.closest('pre') || block : block;
-          
+
           const div = document.createElement("div");
           div.className = "mermaid";
           div.textContent = block.textContent;
-          
+
           targetNode.replaceWith(div);
         });
 
-        // Run Mermaid renderer on all .mermaid elements
-        await mermaid.run({
-          querySelector: '.mermaid'
-        });
+        await mermaid.run({ querySelector: '.mermaid' });
       };
 
       document.addEventListener("DOMContentLoaded", () => {
